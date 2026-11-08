@@ -1,16 +1,176 @@
+
+
 <!doctype html>
-<html lang="mk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SKY2</title>
-<style>body{margin:0;background:#101827;color:#fff;font:17px Arial,sans-serif;text-align:center}main{max-width:420px;margin:12vh auto;padding:24px}h1{font-size:56px;color:#70a7ff}button,input{box-sizing:border-box;width:100%;padding:16px;margin:9px 0;border-radius:12px;font-size:17px}button{border:0;background:#3465e9;color:white;cursor:pointer}input{background:#fff;border:1px solid #aaa}#auth,#account{display:none}#message{color:#fbbf24;overflow-wrap:anywhere}</style></head>
-<body><main><h1>SKY2</h1><p>Private Chat &amp; Video Calls</p><div id="home"><button id="login">Најава</button><button id="register">Регистрација</button></div><div id="auth"><h2 id="heading">Најава</h2><input id="email" type="email" placeholder="Е-пошта" autocomplete="email"><input id="password" type="password" placeholder="Лозинка (најмалку 6 знаци)" autocomplete="current-password"><button id="submit">Продолжи</button><button id="back">Назад</button></div><div id="account"><p>Успешно си најавен: <strong id="who"></strong></p><button id="logout">Одјава</button><p>Најавата работи. Разговорите и видео повиците ќе ги додадеме во следната верзија.</p></div><p id="message" role="status"></p></main>
+<html lang="mk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SKY2</title>
+<style>
+body{background:#101827;color:white;font:16px Arial;margin:0}
+main{max-width:480px;margin:auto;padding:22px}
+h1{text-align:center;color:#70a7ff;font-size:48px}
+button,input{box-sizing:border-box;width:100%;padding:14px;margin:7px 0;border-radius:10px;font-size:16px}
+button{background:#3465e9;color:white;border:0}
+input{background:white;color:#111;border:0}
+#auth,#account,#chat{display:none}
+.panel{background:#1b2940;padding:15px;border-radius:12px;margin:12px 0}
+#messages{height:300px;overflow:auto;white-space:pre-wrap}
+.msg{background:#34465e;padding:10px;border-radius:10px;margin:7px 0;overflow-wrap:anywhere}
+.mine{background:#265bd2}
+#notice{color:#fbbf24;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<main>
+<h1>SKY2</h1>
+<p style="text-align:center">Private Chat</p>
+<div id="home">
+<button id="login">Најава</button>
+<button id="register">Регистрација</button>
+</div>
+<div id="auth">
+<h2 id="heading">Најава</h2>
+<input id="email" type="email" placeholder="Е-пошта">
+<input id="password" type="password" placeholder="Лозинка">
+<button id="submit">Продолжи</button>
+<button id="back">Назад</button>
+</div>
+<div id="account">
+<p>Најавен: <strong id="who"></strong></p>
+<button id="logout">Одјава</button>
+<div class="panel">
+<h3>Нов приватен разговор</h3>
+<input id="recipient" type="text" placeholder="Кориснички ID на примачот">
+<button id="start">Започни разговор</button>
+</div>
+<div class="panel">
+<h3>Мој кориснички ID</h3>
+<p id="myid" style="overflow-wrap:anywhere"></p>
+<button id="copyid">Копирај ID</button>
+<h3>Мои разговори</h3>
+<div id="threads"></div>
+</div>
+</div>
+<div id="chat">
+<button id="chatback">Назад</button>
+<h3 id="peer"></h3>
+<div class="panel" id="messages"></div>
+<input id="draft" maxlength="2000" placeholder="Напиши порака">
+<button id="send">Испрати</button>
+</div>
+<p id="notice" role="status"></p>
+</main>
 <script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-const app=initializeApp({apiKey:'AIzaSyB8JKmi7V_cRBa79l73UWszY6HK2wyhSKw',authDomain:'sky2-fe861.firebaseapp.com',projectId:'sky2-fe861',storageBucket:'sky2-fe861.firebasestorage.app',messagingSenderId:'167976480175',appId:'1:167976480175:web:99732f01bcc48051a5d35a'});
-const auth=getAuth(app);const el=id=>document.getElementById(id);let mode='login';
-function show(section){for(const id of ['home','auth','account'])el(id).style.display=id===section?'block':'none';el('message').textContent=''}
-function open(m){mode=m;el('heading').textContent=m==='login'?'Најава':'Регистрација';show('auth')}
-el('login').onclick=()=>open('login');el('register').onclick=()=>open('register');el('back').onclick=()=>show('home');
-el('submit').onclick=async()=>{const email=el('email').value.trim(),password=el('password').value;el('message').textContent='Се обработува...';try{if(mode==='login')await signInWithEmailAndPassword(auth,email,password);else await createUserWithEmailAndPassword(auth,email,password)}catch(e){const messages={'auth/invalid-credential':'Погрешна е-пошта или лозинка.','auth/email-already-in-use':'Оваа е-пошта е веќе регистрирана. Користи Најава.','auth/weak-password':'Лозинката мора да има најмалку 6 знаци.','auth/invalid-email':'Внеси валидна е-пошта.','auth/operation-not-allowed':'Овој начин на најава не е овозможен во Firebase.','auth/unauthorized-domain':'Додај го доменот во Firebase Authentication → Settings → Authorized domains.'};el('message').textContent=messages[e.code]||'Грешка: '+e.code}};
-el('logout').onclick=()=>signOut(auth);
-onAuthStateChanged(auth,user=>{if(user){el('who').textContent=user.email||'';show('account')}else show('home')});
-</script></body></html>
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,collection,addDoc,onSnapshot,query,where,orderBy,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const app=initializeApp({
+apiKey:"AIzaSyB8JKmi7V_cRBa79l73UWszY6HK2wyhSKw",
+authDomain:"sky2-fe861.firebaseapp.com",
+projectId:"sky2-fe861",
+appId:"1:167976480175:web:99732f01bcc48051a5d35a"
+});
+const auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+let user=null,mode="login",active=null,stopThreads=null,stopMessages=null;
+
+function notice(t){$("notice").textContent=t||""}
+function show(id){
+["home","auth","account","chat"].forEach(x=>$(x).style.display=x===id?"block":"none");
+notice("");
+}
+function error(e){notice("Грешка: "+(e.code||e.message||"Непозната"))}
+$("login").onclick=()=>{mode="login";$("heading").textContent="Најава";show("auth")};
+$("register").onclick=()=>{mode="register";$("heading").textContent="Регистрација";show("auth")};
+$("back").onclick=()=>show("home");
+$("logout").onclick=()=>signOut(auth);
+$("submit").onclick=async()=>{
+try{
+notice("Се обработува...");
+const email=$("email").value.trim(),pass=$("password").value;
+if(mode==="login")await signInWithEmailAndPassword(auth,email,pass);
+else await createUserWithEmailAndPassword(auth,email,pass);
+}catch(e){error(e)}
+};
+function chatId(a,b){return [a,b].sort().join("_")}
+function openChat(id,name){
+active=id;
+$("peer").textContent=name;
+show("chat");
+if(stopMessages)stopMessages();
+const q=query(collection(db,"chats",id,"messages"),orderBy("createdAt"));
+stopMessages=onSnapshot(q,s=>{
+const box=$("messages");box.replaceChildren();
+s.forEach(d=>{
+const m=d.data(),p=document.createElement("div");
+p.className="msg"+(m.senderId===user.uid?" mine":"");
+p.textContent=m.text||"";
+box.appendChild(p);
+});
+box.scrollTop=box.scrollHeight;
+},error);
+}
+function watchChats(){
+if(stopThreads)stopThreads();
+const q=query(collection(db,"chats"),where("members","array-contains",user.uid));
+stopThreads=onSnapshot(q,s=>{
+const box=$("threads");box.replaceChildren();
+s.forEach(d=>{
+const p=d.data(),other=p.members.find(x=>x!==user.uid);
+const b=document.createElement("button");
+b.textContent="Разговор: "+other.slice(0,12)+"…";
+b.onclick=()=>openChat(d.id,other);
+box.appendChild(b);
+});
+if(s.empty)box.textContent="Немаш разговори.";
+},error);
+}
+$("start").onclick=async()=>{
+const other=$("recipient").value.trim();
+if(!other||other===user.uid)return notice("Внеси ID на друг корисник.");
+try{
+const profile=await getDoc(doc(db,"users",other));
+if(!profile.exists())return notice("Корисникот не е пронајден.");
+const id=chatId(user.uid,other),ref=doc(db,"chats",id);
+if(!(await getDoc(ref)).exists()){
+await setDoc(ref,{members:[user.uid,other].sort(),createdAt:serverTimestamp()});
+}
+openChat(id,other);
+}catch(e){error(e)}
+};
+$("send").onclick=async()=>{
+const text=$("draft").value.trim();
+if(!text||!active)return;
+try{
+await addDoc(collection(db,"chats",active,"messages"),{
+senderId:user.uid,text,createdAt:serverTimestamp()
+});
+$("draft").value="";
+}catch(e){error(e)}
+};
+$("chatback").onclick=()=>{
+if(stopMessages){stopMessages();stopMessages=null}
+active=null;show("account");
+};
+$("copyid").onclick=async()=>{
+try{await navigator.clipboard.writeText(user.uid);notice("ID е копиран.")}
+catch(e){notice("ID: "+user.uid)}
+};
+onAuthStateChanged(auth,async u=>{
+if(stopThreads){stopThreads();stopThreads=null}
+if(stopMessages){stopMessages();stopMessages=null}
+user=u;active=null;
+if(!u){show("home");return}
+$("who").textContent=u.email||"";
+$("myid").textContent=u.uid;
+show("account");
+try{
+await setDoc(doc(db,"users",u.uid),{active:true},{merge:true});
+watchChats();
+}catch(e){error(e)}
+});
+</script>
+</body>
+</html>
