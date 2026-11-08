@@ -1,20 +1,16 @@
-<!DOCTYPE html>
-<html lang="mk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SKY2</title>
-<style>
-body{font-family:Arial,sans-serif;background:#101827;color:white;text-align:center;padding:60px 20px}
-h1{font-size:48px;color:#60a5fa}
-button{display:block;width:100%;max-width:300px;margin:16px auto;padding:16px;border:0;border-radius:12px;background:#2563eb;color:white;font-size:18px}
-</style>
-</head>
-<body>
-<h1>SKY2</h1>
-<p>Private Chat & Video Calls</p>
-<button>Најава</button>
-<button>Регистрација</button>
-<p>Добредојде во SKY2</p>
-</body>
-</html>
+<!doctype html>
+<html lang="mk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SKY2</title>
+<style>body{margin:0;background:#101827;color:#fff;font:17px Arial,sans-serif;text-align:center}main{max-width:420px;margin:12vh auto;padding:24px}h1{font-size:56px;color:#70a7ff}button,input{box-sizing:border-box;width:100%;padding:16px;margin:9px 0;border-radius:12px;font-size:17px}button{border:0;background:#3465e9;color:white;cursor:pointer}input{background:#fff;border:1px solid #aaa}#auth,#account{display:none}#message{color:#fbbf24;overflow-wrap:anywhere}</style></head>
+<body><main><h1>SKY2</h1><p>Private Chat &amp; Video Calls</p><div id="home"><button id="login">Најава</button><button id="register">Регистрација</button></div><div id="auth"><h2 id="heading">Најава</h2><input id="email" type="email" placeholder="Е-пошта" autocomplete="email"><input id="password" type="password" placeholder="Лозинка (најмалку 6 знаци)" autocomplete="current-password"><button id="submit">Продолжи</button><button id="back">Назад</button></div><div id="account"><p>Успешно си најавен: <strong id="who"></strong></p><button id="logout">Одјава</button><p>Најавата работи. Разговорите и видео повиците ќе ги додадеме во следната верзија.</p></div><p id="message" role="status"></p></main>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+const app=initializeApp({apiKey:'AIzaSyB8JKmi7V_cRBa79l73UWszY6HK2wyhSKw',authDomain:'sky2-fe861.firebaseapp.com',projectId:'sky2-fe861',storageBucket:'sky2-fe861.firebasestorage.app',messagingSenderId:'167976480175',appId:'1:167976480175:web:99732f01bcc48051a5d35a'});
+const auth=getAuth(app);const el=id=>document.getElementById(id);let mode='login';
+function show(section){for(const id of ['home','auth','account'])el(id).style.display=id===section?'block':'none';el('message').textContent=''}
+function open(m){mode=m;el('heading').textContent=m==='login'?'Најава':'Регистрација';show('auth')}
+el('login').onclick=()=>open('login');el('register').onclick=()=>open('register');el('back').onclick=()=>show('home');
+el('submit').onclick=async()=>{const email=el('email').value.trim(),password=el('password').value;el('message').textContent='Се обработува...';try{if(mode==='login')await signInWithEmailAndPassword(auth,email,password);else await createUserWithEmailAndPassword(auth,email,password)}catch(e){const messages={'auth/invalid-credential':'Погрешна е-пошта или лозинка.','auth/email-already-in-use':'Оваа е-пошта е веќе регистрирана. Користи Најава.','auth/weak-password':'Лозинката мора да има најмалку 6 знаци.','auth/invalid-email':'Внеси валидна е-пошта.','auth/operation-not-allowed':'Овој начин на најава не е овозможен во Firebase.','auth/unauthorized-domain':'Додај го доменот во Firebase Authentication → Settings → Authorized domains.'};el('message').textContent=messages[e.code]||'Грешка: '+e.code}};
+el('logout').onclick=()=>signOut(auth);
+onAuthStateChanged(auth,user=>{if(user){el('who').textContent=user.email||'';show('account')}else show('home')});
+</script></body></html>
